@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #FDF6EC;
+  --color-cream-dark: #F5EBD8;
+  --color-espresso: #2C1810;
+  --color-espresso-light: #4A2C1A;
+  --color-mocha: #6B3A2A;
+  --color-caramel: #C4813D;
+  --color-gold: #D4A853;
+  --color-latte: #E8D5B7;
+  --color-sage: #7A8B6F;
+  --color-rose: #C4756B;
+}
+
+@layer base {
+  body {
+    font-family: 'Georgia', serif;
+    background-color: #FDF6EC;
+    color: #2C1810;
+  }
+}
+
+@layer components {
+  .coffee-card {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .coffee-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(44, 24, 16, 0.15);
+  }
+  .nav-link {
+    position: relative;
+    transition: all 0.3s ease;
+  }
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #C4813D, #D4A853);
+    transition: width 0.3s ease;
+  }
+  .nav-link:hover::after {
+    width: 100%;
+  }
+  .filter-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .filter-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(196, 129, 61, 0.3);
+  }
+  .cart-item-enter {
+    animation: slideIn 0.3s ease forwards;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease forwards;
+  }
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease forwards;
+  }
+  .tooltip {
+    position: relative;
+  }
+  .tooltip::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: #2C1810;
+    color: #FDF6EC;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s ease;
+  }
+  .tooltip:hover::before {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  .price-tag {
+    transition: all 0.3s ease;
+  }
+  .price-tag:hover {
+    transform: scale(1.1);
+    color: #C4813D;
+  }
+  .scroll-container {
+    scrollbar-width: thin;
+    scrollbar-color: #C4813D #F5EBD8;
+  }
+  .scroll-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scroll-container::-webkit-scrollbar-track {
+    background: #F5EBD8;
+    border-radius: 3px;
+  }
+  .scroll-container::-webkit-scrollbar-thumb {
+    background: #C4813D;
+    border-radius: 3px;
+  }
+}
