@@ -1,10 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { products, categories, roastLevels, Product } from './data/products';
-
-interface CartItem {
-  product: Product;
-  quantity: number;
-}
+import SparkleField from './components/SparkleField';
+import { CartItem, addItem, cartCount, cartTotal, removeItem, setQuantity } from './lib/cart';
+import { filterProducts } from './lib/filters';
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,45 +35,20 @@ function App() {
     return () => { document.body.style.overflow = ''; };
   }, [isCartOpen]);
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.origin.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.flavor.some(f => f.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
-    const matchesRoast = selectedRoast === 'All' || product.roast === selectedRoast;
-    return matchesSearch && matchesCategory && matchesRoast;
-  });
+  const filteredProducts = useMemo(
+    () => filterProducts(products, { search: searchQuery, category: selectedCategory, roast: selectedRoast }),
+    [searchQuery, selectedCategory, selectedRoast]
+  );
 
-  const addToCart = (product: Product) => {
-    setCart(prev => {
-      const existing = prev.find(item => item.product.id === product.id);
-      if (existing) {
-        return prev.map(item =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...prev, { product, quantity: 1 }];
-    });
-  };
+  const addToCart = (product: Product) => setCart(prev => addItem(prev, product));
 
-  const removeFromCart = (productId: number) => {
-    setCart(prev => prev.filter(item => item.product.id !== productId));
-  };
+  const removeFromCart = (productId: number) => setCart(prev => removeItem(prev, productId));
 
-  const updateQuantity = (productId: number, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(productId);
-      return;
-    }
-    setCart(prev => prev.map(item =>
-      item.product.id === productId ? { ...item, quantity } : item
-    ));
-  };
+  const updateQuantity = (productId: number, quantity: number) =>
+    setCart(prev => setQuantity(prev, productId, quantity));
 
-  const cartTotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const total = cartTotal(cart);
+  const count = cartCount(cart);
 
   const handleCheckout = () => {
     setShowCheckout(true);
@@ -99,6 +72,8 @@ function App() {
 
   return (
     <div className="min-h-screen bg-cream">
+      <SparkleField />
+
       {/* Header */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-cream/95 backdrop-blur-md shadow-lg' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -126,14 +101,15 @@ function App() {
               <button
                 onClick={() => setIsCartOpen(true)}
                 className="relative p-2 rounded-full hover:bg-latte/50 transition-all duration-300 group tooltip"
-                data-tooltip={`${cartCount} items in cart`}
+                data-tooltip={`${count} items in cart`}
+                aria-label={`Open cart, ${count} items`}
               >
                 <svg className="w-6 h-6 text-espresso transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
-                {cartCount > 0 && (
+                {count > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-caramel text-white text-xs rounded-full flex items-center justify-center font-bold animate-scale-in">
-                    {cartCount}
+                    {count}
                   </span>
                 )}
               </button>
@@ -476,7 +452,7 @@ function App() {
             <div className="flex items-center justify-between p-6 border-b border-latte/30">
               <div>
                 <h3 className="text-xl font-bold text-espresso">Your Cart</h3>
-                <p className="text-sm text-mocha/60">{cartCount} {cartCount === 1 ? 'item' : 'items'}</p>
+                <p className="text-sm text-mocha/60">{count} {count === 1 ? 'item' : 'items'}</p>
               </div>
               <button
                 onClick={() => { setIsCartOpen(false); setShowCheckout(false); setOrderComplete(false); }}
@@ -567,7 +543,7 @@ function App() {
                             ))}
                             <div className="border-t border-latte/30 mt-2 pt-2 flex justify-between font-bold text-espresso">
                               <span>Total</span>
-                              <span>${cartTotal.toFixed(2)}</span>
+                              <span>${total.toFixed(2)}</span>
                             </div>
                           </div>
 
@@ -672,7 +648,7 @@ function App() {
               <div className="p-6 border-t border-latte/30 bg-white/40">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm text-mocha/60">Subtotal</span>
-                  <span className="text-sm text-espresso">${cartTotal.toFixed(2)}</span>
+                  <span className="text-sm text-espresso">${total.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm text-mocha/60">Shipping</span>
@@ -680,7 +656,7 @@ function App() {
                 </div>
                 <div className="flex justify-between items-center mb-4 pt-2 border-t border-latte/30">
                   <span className="font-bold text-espresso">Total</span>
-                  <span className="text-xl font-bold text-espresso">${cartTotal.toFixed(2)}</span>
+                  <span className="text-xl font-bold text-espresso">${total.toFixed(2)}</span>
                 </div>
                 <button
                   onClick={handleCheckout}

@@ -120,3 +120,74 @@
     border-radius: 3px;
   }
 }
+
+/* ---------- Smooth UI & tinu star particles (desktop only) ---------- */
+
+/* Fixed, non-interactive canvas layer for hover sparkle particles */
+.sparkle-field {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none; /* never blocks clicks */
+  z-index: 45; /* above content, below cart (70) & modal (60) overlays */
+}
+
+@layer components {
+  /* Subtle magnetic lift on interactive cards/buttons */
+  .coffee-card,
+  .filter-btn,
+  .price-tag {
+    will-change: transform;
+  }
+
+  /* Softer, staggered entrance for grid items */
+  .coffee-card {
+    animation: cardEnter 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+  @keyframes cardEnter {
+    from { opacity: 0; transform: translateY(18px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Smooth image parallax inside cards */
+  .coffee-card img {
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Buttery modal/cart entrance */
+  .animate-scale-in {
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Glow ring that follows hover on primary buttons */
+  button[class*="bg-espresso"] {
+    position: relative;
+  }
+}
+
+/* Page-wide smooth scrolling for anchor navigation */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Keep effects crisp on large-pointer devices; disable decorative motion when reduced */
+@media (hover: none), (pointer: coarse), (max-width: 1023px) {
+  .sparkle-field { display: none; }
+  .coffee-card:hover {
+    transform: none;
+    box-shadow: 0 4px 16px rgba(44, 24, 16, 0.08);
+  }
+  .filter-btn:hover { transform: none; box-shadow: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
